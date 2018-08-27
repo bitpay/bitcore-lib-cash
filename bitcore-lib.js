@@ -4978,14 +4978,6 @@ function removeNetwork(network) {
   unindexNetworkBy(network, Object.keys(networkMaps));
 }
 
-
-
-var networkMagic = {
-  livenet: 0xe3e1f3e8,
-  testnet: 0xf4e5f3f4,
-  regtest: 0xdab5bffa,
-};
-
 var dnsSeeds = [
   'seed.bitcoinabc.org',
   'seed-abc.bitcoinforks.org',
@@ -4993,23 +4985,6 @@ var dnsSeeds = [
   'seed.bitprim.org ',
   'seed.deadalnix.me'
 ];
-
-
-var TESTNET = {
-  PORT: 18333,
-  NETWORK_MAGIC: networkMagic.testnet,
-  DNS_SEEDS: dnsSeeds,
-  PREFIX: 'bchtest'
-};
-
-
-var REGTEST = {
-  PORT: 18444,
-  NETWORK_MAGIC: networkMagic.regtest,
-  DNS_SEEDS: [],
-  PREFIX: 'bchreg'
-};
-
 
 var liveNetwork = {
   name: 'livenet',
@@ -5020,32 +4995,34 @@ var liveNetwork = {
   scripthash: 40,
   xpubkey: 0x0488b21e,
   xprivkey: 0x0488ade4,
-  networkMagic: networkMagic.livenet,
+  networkMagic: 0xe3e1f3e8,
   port: 8333,
   dnsSeeds: dnsSeeds
 };
 
-// network magic, port, prefix, and dnsSeeds are overloaded by enableRegtest
 var testNetwork = {
   name: 'testnet',
-  prefix: TESTNET.PREFIX,
+  prefix: 'bchtest',
   pubkeyhash: 0x6f,
   privatekey: 0xef,
   scripthash: 0xc4,
   xpubkey: 0x043587cf,
   xprivkey: 0x04358394,
+  networkMagic: 0xf4e5f3f4,
+  port: 18333,
+  dnsSeeds: dnsSeeds
 };
 
 var regtestNetwork = {
   name: 'regtest',
-  prefix: REGTEST.PREFIX,
+  prefix: 'bchreg',
   pubkeyhash: 0x6f,
   privatekey: 0xef,
   scripthash: 0xc4,
   xpubkey: 0x043587cf,
   xprivkey: 0x04358394,
-  networkMagic: REGTEST.NETWORK_MAGIC,
-  port: REGTEST.PORT,
+  networkMagic: 0xdab5bffa,
+  port: 18444,
   dnsSeeds: [],
   indexBy: [
     'port',
@@ -5067,71 +5044,9 @@ var livenet = get('livenet');
 var regtest = get('regtest');
 var testnet = get('testnet');
 
-
-
-Object.defineProperty(testnet, 'port', {
-  enumerable: true,
-  configurable: false,
-  get: function() {
-    if (this.regtestEnabled) {
-      return REGTEST.PORT;
-    } else {
-      return TESTNET.PORT;
-    }
-  }
-});
-
-Object.defineProperty(testnet, 'networkMagic', {
-  enumerable: true,
-  configurable: false,
-  get: function() {
-    if (this.regtestEnabled) {
-      return BufferUtil.integerAsBuffer(REGTEST.NETWORK_MAGIC);
-    } else {
-      return BufferUtil.integerAsBuffer(TESTNET.NETWORK_MAGIC);
-    }
-  }
-});
-
-Object.defineProperty(testnet, 'dnsSeeds', {
-  enumerable: true,
-  configurable: false,
-  get: function() {
-    if (this.regtestEnabled) {
-      return REGTEST.DNS_SEEDS;
-    } else {
-      return TESTNET.DNS_SEEDS;
-    }
-  }
-});
-
-
-Object.defineProperty(testnet, 'prefix', {
-  enumerable: true,
-  configurable: false,
-  get: function() {
-    if (this.regtestEnabled) {
-      return REGTEST.PREFIX;
-    } else {
-      return TESTNET.PREFIX;
-    }
-  }
-});
-
-Object.defineProperty(testnet, 'prefixArray', {
-  enumerable: true,
-  configurable: false,
-  get: function() {
-    if (this.regtestEnabled) {
-      return prefixToArray(REGTEST.PREFIX);
-    } else {
-      return prefixToArray(TESTNET.PREFIX);
-    }
-  }
-});
-
 /**
  * @function
+ * @deprecated
  * @member Networks#enableRegtest
  * Will enable regtest features for testnet
  */
@@ -5141,6 +5056,7 @@ function enableRegtest() {
 
 /**
  * @function
+ * @deprecated
  * @member Networks#disableRegtest
  * Will disable regtest features for testnet
  */
@@ -6604,13 +6520,6 @@ Interpreter.prototype.checkSignatureEncoding = function(buf) {
         (sig.nhashtype & Signature.SIGHASH_FORKID)) {
       this.errstr = 'SCRIPT_ERR_ILLEGAL_FORKID';
       return false;
-    }
-
-    if ( (this.flags & Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID) &&
-        !(sig.nhashtype & Signature.SIGHASH_FORKID)) {
-      this.errstr = 'SCRIPT_ERR_MUST_USE_FORKID';
-      return false;
-    }
     }
 
     if ( (this.flags & Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID) &&
@@ -9312,6 +9221,10 @@ Input.prototype.setScript = function(script) {
     this._script = script;
     this._script._isInput = true;
     this._scriptBuffer = script.toBuffer();
+  } else if (script === null) {
+    this._script = Script.empty();
+    this._script._isInput = true;
+    this._scriptBuffer = this._script.toBuffer();
   } else if (JSUtil.isHexa(script)) {
     // hex string script
     this._scriptBuffer = new buffer.Buffer(script, 'hex');
@@ -28243,7 +28156,7 @@ module.exports={
   "_args": [
     [
       "elliptic@6.4.0",
-      "/Users/ematiu/dev/bitcore-lib-cash"
+      "/Users/micah/dev/bitcore-lib-cash"
     ]
   ],
   "_from": "elliptic@6.4.0",
@@ -28264,12 +28177,13 @@ module.exports={
   },
   "_requiredBy": [
     "/",
+    "/bitcore-lib",
     "/browserify-sign",
     "/create-ecdh"
   ],
   "_resolved": "https://registry.npmjs.org/elliptic/-/elliptic-6.4.0.tgz",
   "_spec": "6.4.0",
-  "_where": "/Users/ematiu/dev/bitcore-lib-cash",
+  "_where": "/Users/micah/dev/bitcore-lib-cash",
   "author": {
     "name": "Fedor Indutny",
     "email": "fedor@indutny.com"
