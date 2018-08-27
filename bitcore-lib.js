@@ -6611,6 +6611,13 @@ Interpreter.prototype.checkSignatureEncoding = function(buf) {
       this.errstr = 'SCRIPT_ERR_MUST_USE_FORKID';
       return false;
     }
+    }
+
+    if ( (this.flags & Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID) &&
+        !(sig.nhashtype & Signature.SIGHASH_FORKID)) {
+      this.errstr = 'SCRIPT_ERR_MUST_USE_FORKID';
+      return false;
+    }
   }
 
   return true;
@@ -55004,7 +55011,7 @@ exports.createContext = Script.createContext = function (context) {
 },{"indexof":152}],217:[function(require,module,exports){
 module.exports={
   "name": "bitcore-lib-cash",
-  "version": "0.18.1",
+  "version": "8.0.0",
   "description": "A pure and powerful JavaScript Bitcoin Cash library.",
   "author": "BitPay <dev@bitpay.com>",
   "main": "index.js",
@@ -55038,6 +55045,7 @@ module.exports={
     "request": "browser-request"
   },
   "dependencies": {
+    "bitcore-lib": "^8.0.0",
     "bn.js": "=4.11.8",
     "bs58": "=4.0.1",
     "buffer-compare": "=1.1.1",
